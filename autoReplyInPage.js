@@ -35,7 +35,7 @@ function getTopicIdsFromOnePage(){
 function isNeedReply(repliedCount,author){
     let bl=false;
     //暂只回复 0-沙发 >5的-有一定热度容易被回复避免太扎眼被封
-    bl=!_NO_REPLY_MANS.includes(author)  && (repliedCount>5 || repliedCount==0)
+    bl=!_NO_REPLY_MANS.includes(author)  && (repliedCount>4 || repliedCount==0)
     return bl;
 }
 
