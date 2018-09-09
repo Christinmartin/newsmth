@@ -1,35 +1,52 @@
 //--定时灌水回复 某一页的所有帖子
 
-var topicIds=[],replyIds=[];
+const _NO_REPLY_MANS=['shen','VampireJax'];//不要回复的楼主列表（低调 不能回复管理员）
+
+let topicIds=[],replyIds=[];
 
 //遍历出第n页的20篇帖子
 function getTopicIdsFromOnePage(){
     $.get("https://exp.newsmth.net/board/topics/d2f70a8101ae880cbc5d18a1be39ffeb/1",function(res){
-        topicIds=res.match(/(?<=\/topic\/)\w+/g);
-        if(topicIds.length<20) {
-            alert("第二页20篇帖子未能正确遍历");
+        let trs=$(res).find('table.table.table-striped tbody tr');
+        if(!trs) {
+            console.log('当前页 res 出错了');
             return;
         }
-        console.log(topicIds)
+        trs.each(function(i){
+            let tds=$(this).find('td');
+            let repliedCount=(tds.eq(4).text() || 0)-0;
+            let author=tds.eq(3).text().trim();
+            let topicId=tds.eq(1).find('a').attr('href').replace(/\/topic\//,'');
+            // console.log(author,repliedCount)
+            if(isNeedReply(repliedCount,author)) topicIds.push(topicId);
+        })
+
+        // topicIds=res.match(/(?<=\/topic\/)\w+/g);
+        // if(topicIds.length<20) {
+        //     alert("第二页20篇帖子未能正确遍历");
+        //     return;
+        // }
+        console.log(topicIds,topicIds.length)
         pushReplyIdOneByOne(0);
     })
 }
 
 //是否要回复本贴 
-function isNeedReply(res){
-    let regArr=res.match(/<span>(\d+) 个回复</);
-    let repliedCount=regArr?regArr[1] : 0;
+function isNeedReply(repliedCount,author){
+    let bl=false;
     //暂只回复 0-沙发 >5的-有一定热度容易被回复避免太扎眼被封
-    return repliedCount>5 || repliedCount==0;
+    bl=!_NO_REPLY_MANS.includes(author)  && (repliedCount>5 || repliedCount==0)
+    return bl;
 }
 
 //抽取回复id 压入数组
 function pushReplyIdOneByOne(index){
     $.get("https://exp.newsmth.net/topic/"+topicIds[index],function(res){
-        if(isNeedReply(res)) replyIds.push(res.match(/compose\/reply\/(\w+)/)[1]);
+        replyIds.push(res.match(/compose\/reply\/(\w+)/)[1]);
         index++;
         //replyId 抽取完毕
         if(index==topicIds.length){
+            console.log('replyIds',replyIds)
             loopReply(0);
             return;
         }
@@ -42,9 +59,14 @@ function pushReplyIdOneByOne(index){
 
 // 循环发送回复
 function loopReply(index) {
-    var topicPageUrl='https://exp.newsmth.net/topic/';
+    const topicPageUrl='https://exp.newsmth.net/topic/';
+    let form_articleId=replyIds[index];
+    if(!form_articleId){
+        console.log('form_articleId error');
+        return false;
+    }
     $.post("https://exp.newsmth.net/compose/save", {
-        articleId:replyIds[index],
+        articleId:form_articleId,
         body: "道阻且长 一起赚积分 加油～"
     },function (res) {
         console.log('send',index+1,topicPageUrl+topicIds[index],res);
@@ -53,8 +75,8 @@ function loopReply(index) {
             console.log("发送完毕，可以继续下一轮了");
             return;
         }
-        //搞个分钟级延时 5-20分钟 不要太快
-        const min=5,max=20;
+        //搞个分钟级延时 不要太快
+        const min=10,max=30;
         const delayMinute=Math.ceil(Math.random() * (max-min)+min);
         let timer = setTimeout(function () {
             loopReply(index);
