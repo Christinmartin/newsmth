@@ -26,7 +26,7 @@ function getTopicIdsFromOnePage(){
         //     alert("第二页20篇帖子未能正确遍历");
         //     return;
         // }
-        console.log(topicIds,topicIds.length)
+        console.log('topicIds',topicIds.length,topicIds)
         pushReplyIdOneByOne(0);
     })
 }
@@ -46,7 +46,7 @@ function pushReplyIdOneByOne(index){
         index++;
         //replyId 抽取完毕
         if(index==topicIds.length){
-            console.log('replyIds',replyIds)
+            console.log('replyIds',replyIds.length,replyIds)
             loopReply(0);
             return;
         }
@@ -67,12 +67,12 @@ function loopReply(index) {
     }
     $.post("https://exp.newsmth.net/compose/save", {
         articleId:form_articleId,
-        body: "道阻且长 一起赚积分 加油～"
+        body: "一起赚积分 加油～"
     },function (res) {
-        console.log('send',index+1,topicPageUrl+topicIds[index],res);
+        console.log('send',index+1,new Date().toLocaleTimeString(),topicPageUrl+topicIds[index],res);
         index++;
         if(index==replyIds.length){
-            console.log("发送完毕，可以继续下一轮了");
+            console.log(new Date().toLocaleTimeString(),"发送完毕，可以继续下一轮了");
             return;
         }
         //搞个分钟级延时 不要太快
