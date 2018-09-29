@@ -67,7 +67,7 @@ function loopReply(index) {
     }
     $.post("https://exp.newsmth.net/compose/save", {
         articleId:form_articleId,
-        body: "一起赚积分 加油～"
+        body: "一起赚积分 加油思密达"+"~~~~~~~~~~~~".slice(Date.now().toString().slice(-1))
     },function (res) {
         console.log('send',index+1,new Date().toLocaleTimeString(),topicPageUrl+topicIds[index],res);
         index++;
@@ -76,7 +76,7 @@ function loopReply(index) {
             return;
         }
         //搞个分钟级延时 不要太快
-        const min=10,max=30;
+        const min=1,max=10;
         const delayMinute=Math.ceil(Math.random() * (max-min)+min);
         let timer = setTimeout(function () {
             loopReply(index);
